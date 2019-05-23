@@ -15,16 +15,10 @@ div#user-cheatsheet ul{list-style:none; padding:10px 0 0 0 ; color:lightgray;}
 </style>
 </head>
 <body>
-	<h2>Hello WebSocket</h2>
-	<ol>
-		<li>
-			<a href="javascript:$('.input-container:eq(0)').show();$('#userId').focus();">Hello, WebSocket</a>
-			<div class="input-container">
-				<input type="text" id="userId" placeholder="접속아이디" /> <button onclick="goChat();">접속</button>
-			</div>			
-		</li>
-		
-	</ol>		
+	<h2><a href="javascript:$('.input-container:eq(0)').show().find('#userId').focus();">Hello WebSocket</a></h2>
+	<div class="input-container">
+		<input type="text" id="userId" placeholder="접속아이디" /> <button onclick="goChat();">접속</button>
+	</div>		
 <script>
 function goChat(){
 	
