@@ -31,9 +31,16 @@ ws.onopen = function(e){
 ws.onmessage = function(e){
  	console.log("message!:"+e.data);
  	var o = JSON.parse(e.data);
- 	var html = '<li class="list-group-item"><span class="badge badge-dark">'+o.sender+'</span> '+o.msg+'</li>';
- 	$("#chat-container ul").append(html);
  	
+ 	//dm 메세지인 경우
+ 	if(o.type == 'dm'){
+ 		alert(o.sender+" : "+o.msg);
+ 	}
+ 	//일반 메세지인 경우
+ 	else {
+	 	var html = '<li class="list-group-item"><span class="badge badge-dark">'+o.sender+'</span> '+o.msg+'</li>';
+	 	$("#chat-container ul").append(html); 		
+ 	}
  	
  	//스크롤처리
  	$('#msg-container').scrollTop($("#msg-container").prop('scrollHeight'));
@@ -50,6 +57,8 @@ ws.onclose = function(event){
 }
 
 $(function(){
+	
+	//일반 메세지 보내기
 	$("#send").click(function(){
 		var o = {
 				type:"message",
@@ -63,12 +72,14 @@ $(function(){
 		$("#msg").val('').focus();
 	});
 	
+	//엔터키 눌렀을때 전송하기
 	$("#msg").keyup(function(e){
 		if(e.key == 'Enter'){
 			$("#send").trigger('click');
 		}
 	});
 	
+	//접속자 명단 확인하기
 	$("#btn-userList").click(function(){
 		$.ajax({
 			url: "${pageContext.request.contextPath}/chat/userList.chat",
@@ -80,6 +91,52 @@ $(function(){
 		});
 	});
 	
+	//dm전송을 위한 접속자 명단 가져오기
+	$("#dm-client").focus(function(){
+		$.ajax({
+			url: "${pageContext.request.contextPath}/chat/userList.chat",
+			dataType: "json",
+			success: function(data){
+				console.log(data);
+				$("#dm-client").html('<option value="" disabled>접속자 목록</option>');				
+				
+				for(var i in data){
+					$("#dm-client").append('<option value="'+data[i]+'">'+data[i]+'</option>');i
+				}
+			}
+		});
+	});
+	
+	//dm전송
+	$("#dm-send").click(function(){
+		if($("#dm-msg").val().trim().length == 0 ||
+		   $("#dm-client option:selected").val() == ""){
+			console.log("dm is not gonna sent!");
+			return;
+		}
+		
+		
+		var dm = {
+				type:"dm",
+				msg: $("#dm-msg").val(),
+				sender: "<%=userId%>",
+				receiver: $("#dm-client option:selected").val(),
+				time: Date.now()
+		}
+		
+		$.ajax({
+			url: "${pageContext.request.contextPath}/chat/sendDM.chat",
+			data: {dm: JSON.stringify(dm)},
+			dataType: "json",
+			success: function(data){
+				console.log(data.result);
+			}, 
+			complete: function(){
+				//dm input태그 초기화
+				$("#dm-msg").val('');
+			}
+		});
+	});	
 });
 </script>
 <style>
@@ -94,6 +151,9 @@ $(function(){
 }
 #btn-userList{
 	margin: 10px 100px;
+}
+#dm-container{
+	margin: 50px 0 100px;
 }
 </style>
 </head>
@@ -124,7 +184,26 @@ $(function(){
 			<button class="btn btn-outline-secondary" type="button" id="send">Send</button>
 		  </div>
 		</div>
+		<hr style="margin:30px 0" />
+
+		<!-- dm관련 섹션 -->		
+		<div id="dm-container" class="input-group mb-3">
+			<div class="input-group-prepend">
+			  <label class="input-group-text" for="dm-client">DM</label>
+			</div>
+			<select class="custom-select" id="dm-client">
+				<option value="" disabled selected>접속자 목록</option>
+			</select>
+		</div>
+		<div class="input-group mb-3">
+			<input type="text" class="form-control" id="dm-msg">
+			<div class="input-group-append">
+				<button class="btn btn-outline-secondary" type="button"
+					id="dm-send">DM-Send</button>
+			</div>
+		</div>
 	</section>
+	
 	
 	
 	
